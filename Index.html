@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+   <div id="container">
+        <div class="time">
+            <div><h1 id="timer">  </h1></div>
+        </div>
+        <div id="container">
+            <div class="act" id="battery">
+                <div><h1 id="battery">BATTERY INFO</h1></div>
+                <div id="logo"><div><h1 id="batteryper"> </h1></div></div>
+            </div>
+            <div class="act" id="activity">
+                <h1>To-Do List</h1>
+                <div id="tasks">
+                    </div>
+                <form id="new-task-form">
+                    <input type="text" id="new-task" placeholder="Enter your task here..." required>
+                    <button type="submit">Add Task</button>
+                </form>
+            </div>
+        </div>
+   </div>
+
+   <div id="fe">
+        <h1 id="ti">FEEDBACK FORM</h1>
+        <div id="feedback">
+            <div id="cont">
+                <label>Name </label> <input type="text" id="name" class="inp"><br>
+                <label>Email ID </label> <input type="email" id="mail" class="inp"><br>
+                <label>Your suggestion </label><input type="text" id="feed" class="inp"><br>
+                <label>which section you like the most</label> <select id="select">
+                    <option value="potrate">Potrate</option>
+                    <option value="pashion">Fashion</option>
+                    <option value="ai"> AI Created</option>
+                </select><br>
+                <button type="submit" onclick="submit()">SUBMIT</button> <button onclick="clear1()">CLEAR</button>
+                
+            </div>
+        </div>
+   </div>
+    
+</body>
+<script src="script.js"> </script>
+<script>
+
+
+//timer
+
+
+let time = document.getElementById("timer");
+setInterval(()=>{
+  let t = new Date();
+  time.innerHTML = t.toLocaleTimeString();
+},1000)
+
+const batterylevel = document.getElementById("batteryper");
+navigator.getBattery().then(function(battery1){
+  const lev = battery1.level;
+  const stats =lev *100 +"%";
+  batterylevel.innerHTML= stats;
+  console.log(lev)
+  console.log(batterylevel)
+});
+
+
+// feedback
+
+
+function submit() {
+    
+    let name = document.getElementById("name").value;
+    let email = document.getElementById("mail").value;
+    let suggestion = document.getElementById("feed").value;
+  
+    console.log(name);
+    console.log(email);
+    console.log(suggestion);
+
+    alert("Dear " + name + ", your feedback has been recorded.");
+}
+
+function clear1() {
+    document.getElementById("name").value = "";
+    document.getElementById("mail").value = "";
+    document.getElementById("feed").value = "";
+    console.log("ok"); 
+}
+
+// to do
+
+const tasksElement = document.getElementById('tasks');
+const newTaskForm = document.getElementById('new-task-form');
+const newTaskInput = document.getElementById('new-task');
+
+// Connect to MongoDB using Mongoose (replace with your connection details)
+const mongoose = require('mongoose');
+mongoose.connect('mongodb://localhost:27017/list/list1', {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+})
+.then(() => console.log('Connected to MongoDB'))
+.catch(err => console.error('Error connecting to MongoDB:', err));
+
+// Define the Task schema
+const taskSchema = new mongoose.Schema({
+    text: {
+        type: String,
+        required: true
+    },
+    completed: {
+        type: Boolean,
+        default: false
+    }
+});
+
+const Task = mongoose.model('Task', taskSchema);
+
+// Fetch tasks from MongoDB on page load
+fetchTasks();
+
+function fetchTasks() {
+    Task.find()
+        .then(tasks => {
+            tasksElement.innerHTML = ''; // Clear existing tasks
+            tasks.forEach(task => {
+                createTaskElement(task);
+            });
+        })
+        .catch(err => console.error('Error fetching tasks:', err));
+}
+
+function createTaskElement(task) {
+    const taskElement = document.createElement('li');
+    taskElement.textContent = task.text;
+    taskElement.dataset.taskId = task._id; // Store task ID for easy deletion
+
+    const completeButton = document.createElement('button');
+    completeButton.textContent = task.completed ? 'Undo' : 'Complete';
+    completeButton.addEventListener('click', () => toggleTaskCompletion(task));
+
+    const deleteButton = document.createElement('button');
+    deleteButton.textContent = 'Delete';
+    deleteButton.addEventListener('click', () => deleteTask(task._id));
+
+    taskElement.appendChild(completeButton);
+}
+
+
+</script>
+</html>
